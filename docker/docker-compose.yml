@@ -1,0 +1,83 @@
+version: '3.5'
+services:
+
+##########################################################################
+#  CORE SERVICES
+##########################################################################
+  nginx:
+    container_name: nginx
+    image: ${NGINX}
+    restart: unless-stopped
+    networks:
+      - simplilearn
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./conf/:/etc/nginx/:ro
+      - ./certs:/etc/nginx/certs
+
+##########################################################################
+#  CI/CD Application(s) and Service(s)
+##########################################################################
+  jenkins-master:
+    container_name: jenkins-master
+    build: ./
+    user: root
+    restart: unless-stopped
+    networks:
+      - simplilearn
+    ports:
+      - "8081:8080"
+    environment:
+      JENKINS_OPTS: "--prefix=/jenkins"
+    volumes:
+      - jenkins_master_data:/var/jenkins_home:z
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./conf/.ssh:/var/jenkins_home/.ssh
+      - ./conf/.m2:/var/jenkins_home/.m2
+
+  jenkins-node01:
+    container_name: jenkins-node01
+    build: ./
+    user: root
+    restart: unless-stopped
+    networks:
+      - simplilearn
+    ports:
+      - "8082:8080"
+    environment:
+      JENKINS_OPTS: "--prefix=/jenkins"
+    volumes:
+      - jenkins_node01_data:/var/jenkins_home:z
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./conf/.ssh:/var/jenkins_home/.ssh
+      - ./conf/.m2:/var/jenkins_home/.m2
+
+  jenkins-node02:
+    container_name: jenkins-node02
+    build: ./
+    user: root
+    restart: unless-stopped
+    networks:
+      - simplilearn
+    ports:
+      - "8083:8080"
+    environment:
+      JENKINS_OPTS: "--prefix=/jenkins"
+    volumes:
+      - jenkins_node02_data:/var/jenkins_home:z
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./conf/.ssh:/var/jenkins_home/.ssh
+      - ./conf/.m2:/var/jenkins_home/.m2
+
+
+
+volumes:
+  jenkins_master_data:
+  jenkins_node01_data:
+  jenkins_node02_data:
+
+networks:
+  simplilearn:
+    driver: bridge
